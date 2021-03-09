@@ -1,26 +1,27 @@
 import express from "express";
 import dotenv from "dotenv";
 import colors from "color";
-import products from "./data/products.js";
 import connectDB from "./config/db.js";
+import productRoutes from "./routes/productRoute.js";
 
 dotenv.config();
 connectDB();
 
 const app = express();
+
 app.get("/", (req, res) => {
   res.send("Api is running...");
 });
 
-app.get("/api/products", (req, res) => {
-  res.json(products);
-});
+app.use("/api/products", productRoutes);
 
-app.get("/api/products/:id", (req, res) => {
-  const product = products.find((p) => {
-    return p._id === req.params.id;
+app.use((err, req, res, next) => {
+  const error = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(error);
+  res.json({
+    message: err.message,
+    stack: process.env.NODE_ENV === "production" ? null : err.stack,
   });
-  res.json(product);
 });
 
 const PORT = process.env.PORT || 5000;
